@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -50,42 +49,46 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Preview(showBackground = true)
 @Composable
 fun MainScreen() {
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize(),
-            contentAlignment = Alignment.Center
-    ){
-        CityDropdown(
-            modifier = Modifier
-                .align(Alignment.TopCenter),
-            selectedItem = "Москва",
-            items = listOf("Самара", "Москва", "Владивосток"),
-            onSelect = {}
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+            CityDropdown(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                selectedItem = "Москва",
+                items = listOf("Самара", "Москва", "Владивосток"),
+                onSelect = {}
+            )
+//            WeatherLocation(
+//                modifier = Modifier
+//                    .fillMaxWidth(),
+//                city = "Самара",
+//                isExpanded = false
+//            )
+        Temperature(
+            temperature = 36
         )
-        WeatherLocation(
-            modifier = Modifier
-                .align(Alignment.Center),
-            city = "Самара",
-            isExpanded = false
-        )
-        WeatherDetails(
-            modifier = Modifier
-                .align(Alignment.TopCenter),
-            localTime = "13:12",
-            windSpeed = 24.5,
-            airPressure = 35,
-            humidity = 354
-        )
+            WeatherDetails(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                localTime = "13:12",
+                windSpeed = 24.5,
+                airPressure = 35,
+                humidity = 354
+            )
+        }
     }
-}
-
 
 @Composable
 fun WeatherLocation(
     modifier: Modifier,
-    city: String, // Город
+    city: String,
     isExpanded: Boolean
 ){
     Box(
@@ -147,7 +150,7 @@ fun Temperature(
                modifier = Modifier
            )
            Text(
-               text = "fdsfsdf",
+               text = "Облачно",
                fontSize = 30.sp,
                fontWeight = FontWeight.Medium,
                color = Color.Black,
@@ -156,7 +159,7 @@ fun Temperature(
                text = "$temperature°C",
                fontSize = 70.sp,
                fontWeight = FontWeight.Medium,
-               color = Color.White,
+               color = Color.Black,
            )
        }
    }
@@ -165,10 +168,10 @@ fun Temperature(
 @Composable
 fun WeatherDetails(
     modifier: Modifier,
-    localTime: String, // Местное время
-    windSpeed: Double, // Скорость ветра
-    airPressure: Int, // Давление
-    humidity: Int // Влажность
+    localTime: String,
+    windSpeed: Double,
+    airPressure: Int,
+    humidity: Int
 ) {
     Box(
         modifier = modifier
@@ -214,8 +217,8 @@ fun WeatherDetails(
 
 @Composable
 fun ShowBlock(
-    title: String, // Заголовок
-    subtitle: String // Подзаголовок
+    title: String,
+    subtitle: String
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -250,15 +253,6 @@ fun WeatherLocationPreview() {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun Temperature(){
-    WeatherTheme {
-        Temperature(
-            temperature = 36
-            )
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
@@ -278,30 +272,23 @@ fun WeatherDetailsPreview(){
 @Composable
 fun CityDropdown(
     modifier: Modifier = Modifier,
-    selectedItem: String, // Текущий выбор
-    items: List<String>, // Список всех доступных
-    onSelect: (String) -> Unit // Функция, вызываемая в момент выбора
+    selectedItem: String,
+    items: List<String>,
+    onSelect: (String) -> Unit
 ) {
-
-    // Создание изменяемой переменной в Compose
     val isExpanded = remember {
         mutableStateOf(false)
     }
-
     ExposedDropdownMenuBox(
         modifier = modifier,
         expanded = isExpanded.value,
         onExpandedChange = { isExpanded.value = it },
         content = {
-            // Текстовое поле, которое будет хранить текущее значение
             WeatherLocation(
                 modifier = Modifier.menuAnchor(),
                 city = selectedItem,
                 isExpanded = isExpanded.value
             )
-
-            // Непосредственно список вариантов выбора
-            // Будет отображаться только тогда, когда isExpanded == true
             ExposedDropdownMenu(
                 expanded = isExpanded.value,
                 onDismissRequest = { isExpanded.value = false }
