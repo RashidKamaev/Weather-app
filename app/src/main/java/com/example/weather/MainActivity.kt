@@ -1,12 +1,12 @@
-@file:OptIn(ExperimentalGlancePreviewApi::class)
+@file:OptIn(ExperimentalMaterial3Api::class)
 
 package com.example.weather
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,12 +15,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,10 +33,9 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.glance.preview.ExperimentalGlancePreviewApi
-import androidx.glance.preview.Preview
 import com.example.weather.ui.theme.WeatherTheme
 
 class MainActivity : ComponentActivity() {
@@ -40,19 +43,50 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             WeatherTheme {
+                MainScreen()
             }
         }
     }
 }
 
-@Preview
+@Preview(showBackground = true)
+@Composable
+fun MainScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+            CityDropdown(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                selectedItem = "Москва",
+                items = listOf("Самара", "Москва", "Владивосток"),
+                onSelect = {}
+            )
+        Temperature(
+            temperature = 36
+        )
+            WeatherDetails(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                localTime = "13:12",
+                windSpeed = 24.5,
+                airPressure = 35,
+                humidity = 354
+            )
+        }
+    }
+
 @Composable
 fun WeatherLocation(
-    city: String, // Город
-    onClick: () -> Unit
+    modifier: Modifier,
+    city: String,
+    isExpanded: Boolean
 ){
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(
                 horizontal = 24.dp,
@@ -77,22 +111,14 @@ fun WeatherLocation(
             fontWeight = FontWeight.Medium,
             color = Color.Black,
         )
-            Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.vector_down),
-                tint = Color.White,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(12.dp)
-                    .clickable { onClick() }
-            )
+            ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded)
         }
     }
 }
 
-@Preview
 @Composable
 fun Temperature(
-    temperature: Int,
+    temperature: Int
 ) {
    Box(
        modifier = Modifier
@@ -101,41 +127,40 @@ fun Temperature(
    ) {
        Column(
            modifier = Modifier
-               .fillMaxSize()
-
+               .fillMaxSize(),
+           horizontalAlignment = Alignment.CenterHorizontally
        ) {
-           Icon(
+           Image(
                imageVector = ImageVector.vectorResource(id = R.drawable.partly_cloudy_day),
                contentDescription = null,
                modifier = Modifier
-                   .fillMaxSize()
            )
            Text(
-               text = "",
+               text = "Облачно",
                fontSize = 30.sp,
                fontWeight = FontWeight.Medium,
-               color = Color.White,
+               color = Color.Black,
            )
            Text(
                text = "$temperature°C",
                fontSize = 70.sp,
                fontWeight = FontWeight.Medium,
-               color = Color.White,
+               color = Color.Black,
            )
        }
    }
 }
 
-@Preview
 @Composable
 fun WeatherDetails(
-    localTime: String, // Местное время
-    windSpeed: Double, // Скорость ветра
-    airPressure: Int, // Давление
-    humidity: Int // Влажность
+    modifier: Modifier,
+    localTime: String,
+    windSpeed: Double,
+    airPressure: Int,
+    humidity: Int
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(
                 horizontal = 24.dp,
@@ -176,11 +201,10 @@ fun WeatherDetails(
     }
 }
 
-@Preview
 @Composable
 fun ShowBlock(
-    title: String, // Заголовок
-    subtitle: String // Подзаголовок
+    title: String,
+    subtitle: String
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -200,5 +224,92 @@ fun ShowBlock(
             color = Color.Black,
             fontFamily = FontFamily(listOf(Font(R.font.montserrat_medium)))
         )
+    }
+}
+
+@Preview
+@Composable
+fun WeatherLocationPreview() {
+    WeatherTheme {
+        WeatherLocation(
+            modifier = Modifier,
+            city = "test",
+            isExpanded = false
+        )
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun WeatherDetailsPreview(){
+    WeatherTheme {
+        WeatherDetails(
+            modifier = Modifier,
+            localTime = "20:31",
+            windSpeed = 1.4,
+            airPressure = 731,
+            humidity = 52
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CityDropdown(
+    modifier: Modifier = Modifier,
+    selectedItem: String,
+    items: List<String>,
+    onSelect: (String) -> Unit
+) {
+    val isExpanded = remember {
+        mutableStateOf(false)
+    }
+    ExposedDropdownMenuBox(
+        modifier = modifier,
+        expanded = isExpanded.value,
+        onExpandedChange = { isExpanded.value = it },
+        content = {
+            WeatherLocation(
+                modifier = Modifier.menuAnchor(),
+                city = selectedItem,
+                isExpanded = isExpanded.value
+            )
+            ExposedDropdownMenu(
+                expanded = isExpanded.value,
+                onDismissRequest = { isExpanded.value = false }
+            ) {
+                items.forEach { item ->
+                    DropdownMenuItem(
+                        text = { Text(text = item) },
+                        onClick = {
+                            onSelect(item)
+                            isExpanded.value = false
+                        }
+                    )
+                }
+            }
+
+        }
+    )
+
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun DropdownMenuExamplePreview() {
+    WeatherTheme {
+        run {
+            val selectedItem = remember {
+                mutableStateOf("Самара")
+            }
+            CityDropdown(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                selectedItem = selectedItem.value,
+                items = listOf("Самара", "Москва", "Владивосток")
+            ) { selectedItem.value = it }
+        }
     }
 }
