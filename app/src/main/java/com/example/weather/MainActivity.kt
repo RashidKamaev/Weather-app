@@ -123,7 +123,7 @@ fun Temperature(
    Box(
        modifier = Modifier
            .height(320.dp)
-           .width(320.dp)
+           .width(172.dp)
    ) {
        Column(
            modifier = Modifier
@@ -226,19 +226,6 @@ fun ShowBlock(
         )
     }
 }
-
-@Preview
-@Composable
-fun WeatherLocationPreview() {
-    WeatherTheme {
-        WeatherLocation(
-            modifier = Modifier,
-            city = "test",
-            isExpanded = false
-        )
-    }
-}
-
 
 @Preview(showBackground = true)
 @Composable
