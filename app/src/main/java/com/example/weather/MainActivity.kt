@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.weather.ui.theme.WeatherData
 import com.example.weather.ui.theme.WeatherTheme
 
 class MainActivity : ComponentActivity() {
@@ -43,15 +44,26 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             WeatherTheme {
-                MainScreen()
+
+                val weatherData = WeatherData(
+                    localTime = "09:11",
+                    windSpeed = 24.5,
+                    airPressure = 35,
+                    humidity = 354,
+                    temperature = 36
+                )
+
+                MainScreen(weatherData)
+
             }
         }
     }
 }
-
-@Preview(showBackground = true)
 @Composable
-fun MainScreen() {
+fun MainScreen(data: WeatherData) {
+    val selectedItem = remember {
+        mutableStateOf("Москва")
+    }
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -61,60 +73,55 @@ fun MainScreen() {
             CityDropdown(
                 modifier = Modifier
                     .fillMaxWidth(),
-                selectedItem = "Москва",
-                items = listOf("Самара", "Москва", "Владивосток"),
-                onSelect = {}
+                selectedItem = selectedItem.value,
+                items = listOf(
+                    "Тольятти",
+                    "Москва",
+                    "Владивосток"
+                ),
+                onSelect = { selectedItem.value = it }
             )
         Temperature(
-            temperature = 36
+            temperature = data.temperature
         )
             WeatherDetails(
                 modifier = Modifier
                     .fillMaxWidth(),
-                localTime = "13:12",
-                windSpeed = 24.5,
-                airPressure = 35,
-                humidity = 354
+                localTime = data.localTime,
+                windSpeed = data.windSpeed,
+                airPressure = data.airPressure,
+                humidity = data.humidity
             )
         }
     }
 
 @Composable
 fun WeatherLocation(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     city: String,
     isExpanded: Boolean
 ){
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(
-                horizontal = 24.dp,
-                vertical = 22.dp
-            )
-            .background(
-                color = Color.Black.copy(0.05f),
-                shape = RoundedCornerShape(12.dp)
-            )
-    ) {
-        Row(
-            modifier = Modifier
+    Row(
+            modifier = modifier
                 .fillMaxWidth()
                 .padding(
                     horizontal = 10.dp,
                     vertical = 9.dp
-                )
+                ),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
         ) {
         Text(
             text = city,
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
+            fontFamily = FontFamily(listOf(Font(R.font.montserrat_medium))),
             color = Color.Black,
-        )
-            ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded)
-        }
+            )
+        ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded)
     }
 }
+
 
 @Composable
 fun Temperature(
@@ -138,13 +145,15 @@ fun Temperature(
            Text(
                text = "Облачно",
                fontSize = 30.sp,
-               fontWeight = FontWeight.Medium,
+               fontWeight = FontWeight.SemiBold,
+               fontFamily = FontFamily(listOf(Font(R.font.montserrat_semibold))),
                color = Color.Black,
            )
            Text(
-               text = "$temperature°C",
+               text = "$temperature°",
                fontSize = 70.sp,
                fontWeight = FontWeight.Medium,
+               fontFamily = FontFamily(listOf(Font(R.font.montserrat_medium))),
                color = Color.Black,
            )
        }
@@ -160,7 +169,7 @@ fun WeatherDetails(
     humidity: Int
 ) {
     Box(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .padding(
                 horizontal = 24.dp,
@@ -187,7 +196,7 @@ fun WeatherDetails(
             )
             ShowBlock(
                 title = "Ск. ветра",
-                subtitle = "$windSpeed М/С"
+                subtitle = "$windSpeed м/с"
             )
             ShowBlock(
                 title = "Давление",
@@ -231,12 +240,21 @@ fun ShowBlock(
 @Composable
 fun WeatherDetailsPreview(){
     WeatherTheme {
+
+        val weatherData = WeatherData(
+            localTime = "09:11",
+            windSpeed = 24.5,
+            airPressure = 35,
+            humidity = 354,
+            temperature = 36
+        )
+
         WeatherDetails(
             modifier = Modifier,
-            localTime = "20:31",
-            windSpeed = 1.4,
-            airPressure = 731,
-            humidity = 52
+            localTime = weatherData.localTime,
+            windSpeed = weatherData.windSpeed,
+            airPressure = weatherData.airPressure,
+            humidity = weatherData.humidity
         )
     }
 }
@@ -253,7 +271,13 @@ fun CityDropdown(
         mutableStateOf(false)
     }
     ExposedDropdownMenuBox(
-        modifier = modifier,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(24.dp, 22.dp)
+            .background(
+                color = Color.Black.copy(0.05f),
+                shape = RoundedCornerShape(12.dp)
+            ),
         expanded = isExpanded.value,
         onExpandedChange = { isExpanded.value = it },
         content = {
@@ -288,15 +312,34 @@ private fun DropdownMenuExamplePreview() {
     WeatherTheme {
         run {
             val selectedItem = remember {
-                mutableStateOf("Самара")
+                mutableStateOf("Москва")
             }
             CityDropdown(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
+                    .fillMaxWidth(),
                 selectedItem = selectedItem.value,
-                items = listOf("Самара", "Москва", "Владивосток")
-            ) { selectedItem.value = it }
+                items = listOf(
+                    "Тольятти",
+                    "Москва",
+                    "Владивосток"
+                ),
+                onSelect = { selectedItem.value = it }
+            )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MainScreenPreview() {
+    WeatherTheme {
+        val weatherData = WeatherData(
+            localTime = "09:11",
+            windSpeed = 24.5,
+            airPressure = 35,
+            humidity = 354,
+            temperature = 36
+        )
+        MainScreen(weatherData)
     }
 }
