@@ -1,6 +1,4 @@
-package com.example.weather.ui.theme
-
-import android.health.connect.datatypes.units.Temperature
+package com.example.weather
 
 data class WeatherData(
     val localTime: String,
