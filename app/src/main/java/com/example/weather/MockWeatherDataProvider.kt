@@ -1,7 +1,7 @@
 package com.example.weather
 
 class MockWeatherDataProvider : WeatherDataProvider {
-    override fun getData(): WeatherData {
+    override fun getData() : WeatherData {
         return WeatherData(
             "09:11",
             24.5,

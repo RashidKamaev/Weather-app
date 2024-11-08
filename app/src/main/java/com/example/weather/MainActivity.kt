@@ -3,6 +3,7 @@
 package com.example.weather
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -23,6 +24,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -37,9 +39,30 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weather.ui.theme.WeatherTheme
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
+@Composable
+fun WeatherApp(){
+
+    val retrofit = remember {
+        Retrofit.Builder()
+            .baseUrl("http://api.weatherapi.com/v1/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+val weatherApi = remember {
+    retrofit.create(WeatherApi::class.java)
+}
+    LaunchedEffect(Unit) {
+        val data = weatherApi.getWeatherData(city = "London")
+        Log.d("Data", "WeatherApp: $data ")
+        data.current.
+    }
+
+}
 class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState : Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             WeatherTheme {
@@ -47,14 +70,14 @@ class MainActivity : ComponentActivity() {
                 val weatherProvider : WeatherDataProvider = MockWeatherDataProvider()
                 val weatherData = weatherProvider.getData()
                 MainScreen(weatherData)
-
+                WeatherApp()
             }
         }
     }
 }
 
 @Composable
-fun MainScreen(data: WeatherData) {
+fun MainScreen(data : WeatherData) {
     val selectedItem = remember {
         mutableStateOf(CityBuiltIn.getDefaultCity())
     }
@@ -78,10 +101,10 @@ fun MainScreen(data: WeatherData) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CityDropdown(
-    modifier: Modifier = Modifier,
-    selectedItem: String,
-    items: List<String>,
-    onSelect: (String) -> Unit
+    modifier : Modifier = Modifier,
+    selectedItem : String,
+    items : List<String>,
+    onSelect : (String) -> Unit
 ) {
     val isExpanded = remember {
         mutableStateOf(false)
@@ -123,7 +146,8 @@ fun CityDropdown(
 
 @Composable
 fun WeatherDetails(
-    weather: WeatherData
+    weather : WeatherCurrentResponse,
+    local : WeatherLocationResponse
 ) {
     Box(
         modifier = Modifier
@@ -149,15 +173,15 @@ fun WeatherDetails(
         ) {
             ShowBlock(
                 title = "Время",
-                subtitle = weather.localTime
+                subtitle = local.localtime
             )
             ShowBlock(
                 title = "Ск. ветра",
-                subtitle = "${weather.windSpeed} м/с"
+                subtitle = "${weather.wind_kph} м/с"
             )
             ShowBlock(
                 title = "Давление",
-                subtitle = "${weather.airPressure} мм."
+                subtitle = "${weather.pressure_mb} мм."
             )
             ShowBlock(
                 title = "Влажность",
@@ -169,7 +193,7 @@ fun WeatherDetails(
 
 @Composable
 fun Temperature(
-    temperature: Int
+    temperature : Int
 ) {
     Box(
         modifier = Modifier
@@ -204,11 +228,12 @@ fun Temperature(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeatherLocation(
-    modifier: Modifier = Modifier,
-    city: String,
-    isExpanded: Boolean
+    modifier : Modifier = Modifier,
+    city : String,
+    isExpanded : Boolean
 ) {
     Row(
         modifier = modifier
@@ -233,8 +258,8 @@ fun WeatherLocation(
 
 @Composable
 fun ShowBlock(
-    title: String,
-    subtitle: String
+    title : String,
+    subtitle : String
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
