@@ -10,10 +10,10 @@ data class WeatherLocationResponse(
 )
 
 data class WeatherCurrentResponse(
-    val temp_c : Number,
-    val condition : WeatherConditionResponse,
-    val wind_kph : Number,
-    val pressure_mb: Number,
+    val temp_c: Number,
+    val condition: WeatherConditionResponse,
+    val wind_kph: Number,
+    val pressure_mb : Number,
     val humidity: Int
 )
 

@@ -39,36 +39,28 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weather.ui.theme.WeatherTheme
+import kotlinx.coroutines.runBlocking
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 @Composable
 fun WeatherApp(){
-
-    val retrofit = remember {
-        Retrofit.Builder()
-            .baseUrl("http://api.weatherapi.com/v1/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
-val weatherApi = remember {
-    retrofit.create(WeatherApi::class.java)
-}
     LaunchedEffect(Unit) {
-        val data = weatherApi.getWeatherData(city = "London")
-        Log.d("Data", "WeatherApp: $data ")
-        data.current.
+        val provider: WeatherDataProvider = RealWeatherDataProvider()
+        val data: WeatherData = provider.getData(city = CityBuiltIn.getLondon())
     }
-
 }
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState : Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             WeatherTheme {
-
-                val weatherProvider : WeatherDataProvider = MockWeatherDataProvider()
-                val weatherData = weatherProvider.getData()
+                val weatherData: WeatherData
+                runBlocking {
+                    val weatherProvider : WeatherDataProvider =RealWeatherDataProvider()
+                    weatherData = weatherProvider.getData(city = CityBuiltIn.getLondon())
+                }
                 MainScreen(weatherData)
                 WeatherApp()
             }
@@ -146,8 +138,7 @@ fun CityDropdown(
 
 @Composable
 fun WeatherDetails(
-    weather : WeatherCurrentResponse,
-    local : WeatherLocationResponse
+    weather : WeatherData
 ) {
     Box(
         modifier = Modifier
@@ -173,15 +164,15 @@ fun WeatherDetails(
         ) {
             ShowBlock(
                 title = "Время",
-                subtitle = local.localtime
+                subtitle = weather.localTime
             )
             ShowBlock(
                 title = "Ск. ветра",
-                subtitle = "${weather.wind_kph} м/с"
+                subtitle = "${weather.windSpeed} м/с"
             )
             ShowBlock(
                 title = "Давление",
-                subtitle = "${weather.pressure_mb} мм."
+                subtitle = "${weather.airPressure} мм."
             )
             ShowBlock(
                 title = "Влажность",
@@ -193,7 +184,7 @@ fun WeatherDetails(
 
 @Composable
 fun Temperature(
-    temperature : Int
+    temperature : Number
 ) {
     Box(
         modifier = Modifier
@@ -324,13 +315,13 @@ private fun DropdownMenuExamplePreview() {
 @Composable
 fun MainScreenPreview() {
     WeatherTheme {
-        val weatherData = WeatherData(
-            localTime = "09:11",
-            windSpeed = 24.5,
-            airPressure = 35,
-            humidity = 354,
-            temperature = 36
-        )
-        MainScreen(weatherData)
+//        val weatherData = WeatherResponse(
+//            temp_c = ,
+//            windSpeed = ,
+//            airPressure = ,
+//            humidity = ,
+//            temperature =
+//        )
+//        MainScreen(weatherData)
     }
 }

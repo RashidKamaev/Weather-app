@@ -10,5 +10,6 @@ class CityBuiltIn {
                 "Владивосток"
             )
         fun getDefaultCity() : String = getCities().find { city -> city.equals("Москва") } ?: "Москва"
+        fun getLondon() : String = "London"
     }
 }

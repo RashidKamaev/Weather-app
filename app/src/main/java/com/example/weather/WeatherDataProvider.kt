@@ -1,5 +1,5 @@
 package com.example.weather
 
 interface WeatherDataProvider {
-    fun getData() : WeatherData
+    suspend fun getData(city: String) : WeatherData
 }
