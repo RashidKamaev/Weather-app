@@ -3,7 +3,6 @@
 package com.example.weather
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -25,6 +24,8 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -40,23 +41,36 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weather.ui.theme.WeatherTheme
 import kotlinx.coroutines.runBlocking
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+
+//@Composable
+//fun WeatherApp(){
+//    LaunchedEffect(Unit) {
+//        val provider: WeatherDataProvider = RealWeatherDataProvider()
+//        val data: WeatherData = provider.getData(city = CityBuiltIn.getLondon())
+//    }
+//}
 
 @Composable
-fun WeatherApp(){
+fun WeatherApp() {
+    val weatherData = remember { mutableStateOf<WeatherData?>(null) }
+    val provider: WeatherDataProvider = RealWeatherDataProvider()
+
     LaunchedEffect(Unit) {
-        val provider: WeatherDataProvider = RealWeatherDataProvider()
-        val data: WeatherData = provider.getData(city = CityBuiltIn.getLondon())
+        weatherData.value = provider.getData(city = CityBuiltIn.getLondon())
+    }
+
+    weatherData.value?.let {
+        MainScreen(it)
     }
 }
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState : Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             WeatherTheme {
-                val weatherData: WeatherData
+                val weatherData : WeatherData
                 runBlocking {
                     val weatherProvider : WeatherDataProvider =RealWeatherDataProvider()
                     weatherData = weatherProvider.getData(city = CityBuiltIn.getLondon())
@@ -73,6 +87,9 @@ fun MainScreen(data : WeatherData) {
     val selectedItem = remember {
         mutableStateOf(CityBuiltIn.getDefaultCity())
     }
+    var temperature: Double = 0.0
+//    var weatherData: WeatherData
+//    var myWeather =  mutableStateOf(value = weatherData)
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -83,9 +100,17 @@ fun MainScreen(data : WeatherData) {
             modifier = Modifier.fillMaxWidth(),
             selectedItem = selectedItem.value,
             items = CityBuiltIn.getCities(),
-            onSelect = { selectedItem.value = it }
+            onSelect = {
+                selectedItem.value = it
+                runBlocking {
+                    val weatherProvider : WeatherDataProvider = RealWeatherDataProvider()
+                    val weatherData = weatherProvider.getData(city = it)
+                    temperature = weatherData.temperature
+                }
+            }
         )
-        Temperature(data.temperature)
+        val myTemperature by temperature
+        Temperature(temperature.toString())
         WeatherDetails(data)
     }
 }
@@ -110,7 +135,9 @@ fun CityDropdown(
                 shape = RoundedCornerShape(12.dp)
             ),
         expanded = isExpanded.value,
-        onExpandedChange = { isExpanded.value = it },
+        onExpandedChange = {
+            isExpanded.value = it
+                           },
         content = {
             WeatherLocation(
                 modifier = Modifier.menuAnchor(),
@@ -184,7 +211,7 @@ fun WeatherDetails(
 
 @Composable
 fun Temperature(
-    temperature : Number
+    temperature : String
 ) {
     Box(
         modifier = Modifier
@@ -283,7 +310,7 @@ fun WeatherDetailsPreview() {
             windSpeed = 24.5,
             airPressure = 35,
             humidity = 354,
-            temperature = 36
+            temperature = 36.0
         )
 
         WeatherDetails(weatherData)

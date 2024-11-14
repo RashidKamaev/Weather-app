@@ -4,12 +4,12 @@ class CityBuiltIn {
     companion object {
         fun getCities() : List<String> =
             listOf(
-                "Самара",
-                "Тольятти",
-                "Москва",
+                "Samara",
+                "Togliati",
+                "Moscow",
                 "Владивосток"
             )
-        fun getDefaultCity() : String = getCities().find { city -> city.equals("Москва") } ?: "Москва"
+        fun getDefaultCity() : String = getCities().find { city -> city.equals("Moscow") } ?: "Moscow"
         fun getLondon() : String = "London"
     }
 }

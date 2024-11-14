@@ -7,7 +7,7 @@ class MockWeatherDataProvider : WeatherDataProvider {
             24.5,
             35,
             354,
-            36
+            36.0
         )
     }
 }
