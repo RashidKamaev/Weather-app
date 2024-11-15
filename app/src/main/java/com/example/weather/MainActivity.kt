@@ -24,10 +24,10 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableDoubleStateOf
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -58,6 +58,11 @@ fun WeatherApp() {
     LaunchedEffect(Unit) {
         weatherData.value = provider.getData(city = CityBuiltIn.getLondon())
     }
+    var isLoading by remember { mutableStateOf(false) }
+    var isError by remember { mutableStateOf(false) }
+
+    var serverData by remember { mutableStateOf<WeatherUiDataModel?>(null) }
+    var errorMessage by remember { mutableStateOf("") }
 
     weatherData.value?.let {
         MainScreen(it)
@@ -105,11 +110,11 @@ fun MainScreen(data : WeatherData) {
                 runBlocking {
                     val weatherProvider : WeatherDataProvider = RealWeatherDataProvider()
                     val weatherData = weatherProvider.getData(city = it)
-                    temperature = weatherData.temperature
+                    temperature = weatherData.temperature as Double
                 }
             }
         )
-        val myTemperature by temperature
+        val myTemperature = temperature
         Temperature(temperature.toString())
         WeatherDetails(data)
     }

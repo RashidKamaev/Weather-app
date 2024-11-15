@@ -5,11 +5,11 @@ class CityBuiltIn {
         fun getCities() : List<String> =
             listOf(
                 "Samara",
-                "Togliati",
+                "Togliatti",
                 "Moscow",
                 "Владивосток"
             )
-        fun getDefaultCity() : String = getCities().find { city -> city.equals("Moscow") } ?: "Moscow"
+        fun getDefaultCity() : String = getCities().find { city -> city.equals("Togliatti") } ?: "Togliatti"
         fun getLondon() : String = "London"
     }
 }

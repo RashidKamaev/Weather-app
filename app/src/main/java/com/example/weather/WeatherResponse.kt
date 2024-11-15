@@ -14,9 +14,11 @@ data class WeatherCurrentResponse(
     val condition: WeatherConditionResponse,
     val wind_kph: Number,
     val pressure_mb : Number,
-    val humidity: Int
+    val humidity: Int,
+
 )
 
 data class WeatherConditionResponse(
-    val text: String
+    val text: String,
+    val code: Int
 )
