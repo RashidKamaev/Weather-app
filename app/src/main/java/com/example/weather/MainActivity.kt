@@ -39,7 +39,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.NotificationCompat.Style
 import com.example.weather.ui.theme.WeatherTheme
+import com.example.weather.view.ViewWeatherResolver
+import com.example.weather.view.ViewWeatherStyle
 import kotlinx.coroutines.runBlocking
 
 //@Composable
@@ -93,7 +96,7 @@ fun MainScreen(data : WeatherData) {
         mutableStateOf(CityBuiltIn.getDefaultCity())
     }
     var temperature: Double = 0.0
-//    var weatherData: WeatherData
+    var weatherData: WeatherData
 //    var myWeather =  mutableStateOf(value = weatherData)
     Column(
         modifier = Modifier
@@ -115,7 +118,12 @@ fun MainScreen(data : WeatherData) {
             }
         )
         val myTemperature = temperature
-        Temperature(temperature.toString())
+        val data : WeatherData
+        runBlocking {
+            data = RealWeatherDataProvider().getData("Samara")
+        }
+        Temperature(data)
+
         WeatherDetails(data)
     }
 }
@@ -216,7 +224,7 @@ fun WeatherDetails(
 
 @Composable
 fun Temperature(
-    temperature : String
+    weather: WeatherData
 ) {
     Box(
         modifier = Modifier
@@ -228,10 +236,14 @@ fun Temperature(
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            val resolver : ViewWeatherResolver = ViewWeatherResolver()
+            val style: ViewWeatherStyle = resolver.resolve(weather)
+
             Image(
-                imageVector = ImageVector.vectorResource(id = R.drawable.partly_cloudy_day),
+                imageVector = ImageVector.vectorResource(id = style.iconId),
                 contentDescription = null,
                 modifier = Modifier
+                    .background(color = style.color)
             )
             Text(
                 text = "Облачно",
@@ -241,7 +253,7 @@ fun Temperature(
                 color = Color.Black,
             )
             Text(
-                text = "$temperature°",
+                text = "${weather.temperature}°",
                 fontSize = 70.sp,
                 fontWeight = FontWeight.Medium,
                 fontFamily = FontFamily(listOf(Font(R.font.montserrat_medium))),
