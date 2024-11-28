@@ -6,4 +6,5 @@ data class WeatherData(
     val airPressure: Number,
     val humidity: Int,
     var temperature: Number,
+    val icon: Int
 )

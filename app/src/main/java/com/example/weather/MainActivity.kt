@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenuItem
@@ -32,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -39,7 +41,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.app.NotificationCompat.Style
 import com.example.weather.ui.theme.WeatherTheme
 import com.example.weather.view.ViewWeatherResolver
 import com.example.weather.view.ViewWeatherStyle
@@ -52,6 +53,16 @@ import kotlinx.coroutines.runBlocking
 //        val data: WeatherData = provider.getData(city = CityBuiltIn.getLondon())
 //    }
 //}
+
+@Composable
+fun WeatherIcon(code: Int, modifier: Modifier = Modifier) {
+    val iconRes = WeatherIconLibrary.getIconResource(code)
+    Image(
+        painter = painterResource(id = iconRes),
+        contentDescription = null,
+        modifier = modifier.size(64.dp)
+    )
+}
 
 @Composable
 fun WeatherApp() {
@@ -327,7 +338,8 @@ fun WeatherDetailsPreview() {
             windSpeed = 24.5,
             airPressure = 35,
             humidity = 354,
-            temperature = 36.0
+            temperature = 36.0,
+            icon = 1150
         )
 
         WeatherDetails(weatherData)
