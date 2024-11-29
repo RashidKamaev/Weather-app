@@ -3,7 +3,6 @@
 package com.example.weather
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -16,21 +15,26 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -39,24 +43,54 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weather.ui.theme.WeatherTheme
+import com.example.weather.view.ViewWeatherResolver
+import com.example.weather.view.ViewWeatherStyle
 import kotlinx.coroutines.runBlocking
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+
+//@Composable
+//fun WeatherApp(){
+//    LaunchedEffect(Unit) {
+//        val provider: WeatherDataProvider = RealWeatherDataProvider()
+//        val data: WeatherData = provider.getData(city = CityBuiltIn.getLondon())
+//    }
+//}
 
 @Composable
-fun WeatherApp(){
+fun WeatherIcon(code: Int, modifier: Modifier = Modifier) {
+    val iconRes = WeatherIconLibrary.getIconResource(code)
+    Image(
+        painter = painterResource(id = iconRes),
+        contentDescription = null,
+        modifier = modifier.size(64.dp)
+    )
+}
+
+@Composable
+fun WeatherApp() {
+    val weatherData = remember { mutableStateOf<WeatherData?>(null) }
+    val provider: WeatherDataProvider = RealWeatherDataProvider()
+
     LaunchedEffect(Unit) {
-        val provider: WeatherDataProvider = RealWeatherDataProvider()
-        val data: WeatherData = provider.getData(city = CityBuiltIn.getLondon())
+        weatherData.value = provider.getData(city = CityBuiltIn.getLondon())
+    }
+    var isLoading by remember { mutableStateOf(false) }
+    var isError by remember { mutableStateOf(false) }
+
+    var serverData by remember { mutableStateOf<WeatherUiDataModel?>(null) }
+    var errorMessage by remember { mutableStateOf("") }
+
+    weatherData.value?.let {
+        MainScreen(it)
     }
 }
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState : Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             WeatherTheme {
-                val weatherData: WeatherData
+                val weatherData : WeatherData
                 runBlocking {
                     val weatherProvider : WeatherDataProvider =RealWeatherDataProvider()
                     weatherData = weatherProvider.getData(city = CityBuiltIn.getLondon())
@@ -73,6 +107,9 @@ fun MainScreen(data : WeatherData) {
     val selectedItem = remember {
         mutableStateOf(CityBuiltIn.getDefaultCity())
     }
+    var temperature: Double = 0.0
+    var weatherData: WeatherData
+//    var myWeather =  mutableStateOf(value = weatherData)
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -83,9 +120,22 @@ fun MainScreen(data : WeatherData) {
             modifier = Modifier.fillMaxWidth(),
             selectedItem = selectedItem.value,
             items = CityBuiltIn.getCities(),
-            onSelect = { selectedItem.value = it }
+            onSelect = {
+                selectedItem.value = it
+                runBlocking {
+                    val weatherProvider : WeatherDataProvider = RealWeatherDataProvider()
+                    val weatherData = weatherProvider.getData(city = it)
+                    temperature = weatherData.temperature as Double
+                }
+            }
         )
-        Temperature(data.temperature)
+        val myTemperature = temperature
+        val data : WeatherData
+        runBlocking {
+            data = RealWeatherDataProvider().getData("Samara")
+        }
+        Temperature(data)
+
         WeatherDetails(data)
     }
 }
@@ -110,10 +160,12 @@ fun CityDropdown(
                 shape = RoundedCornerShape(12.dp)
             ),
         expanded = isExpanded.value,
-        onExpandedChange = { isExpanded.value = it },
+        onExpandedChange = {
+            isExpanded.value = it
+                           },
         content = {
             WeatherLocation(
-                modifier = Modifier.menuAnchor(),
+                modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryNotEditable),
                 city = selectedItem,
                 isExpanded = isExpanded.value
             )
@@ -184,7 +236,7 @@ fun WeatherDetails(
 
 @Composable
 fun Temperature(
-    temperature : Number
+    weather: WeatherData
 ) {
     Box(
         modifier = Modifier
@@ -196,10 +248,14 @@ fun Temperature(
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            val resolver : ViewWeatherResolver = ViewWeatherResolver()
+            val style: ViewWeatherStyle = resolver.resolve(weather)
+
             Image(
-                imageVector = ImageVector.vectorResource(id = R.drawable.partly_cloudy_day),
+                imageVector = ImageVector.vectorResource(id = style.iconId),
                 contentDescription = null,
                 modifier = Modifier
+                    .background(color = style.color)
             )
             Text(
                 text = "Облачно",
@@ -209,7 +265,7 @@ fun Temperature(
                 color = Color.Black,
             )
             Text(
-                text = "$temperature°",
+                text = "${weather.temperature}°",
                 fontSize = 70.sp,
                 fontWeight = FontWeight.Medium,
                 fontFamily = FontFamily(listOf(Font(R.font.montserrat_medium))),
@@ -283,7 +339,8 @@ fun WeatherDetailsPreview() {
             windSpeed = 24.5,
             airPressure = 35,
             humidity = 354,
-            temperature = 36
+            temperature = 36.0,
+            icon = 1150
         )
 
         WeatherDetails(weatherData)

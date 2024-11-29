@@ -1,5 +1,6 @@
 package com.example.weather
 
+import org.intellij.lang.annotations.Language
 import retrofit2.http.GET
 import retrofit2.http.Query
 
