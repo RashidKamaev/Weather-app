@@ -25,7 +25,7 @@ class RealWeatherDataProvider() : WeatherDataProvider {
             data.current.pressure_mb,
             data.current.humidity,
             data.current.temp_c.toDouble(),
-            icon = 
-        )
+            data.current.code
+            )
     }
 }

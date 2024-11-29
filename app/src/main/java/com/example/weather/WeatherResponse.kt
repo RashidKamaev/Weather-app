@@ -2,7 +2,7 @@ package com.example.weather
 
 data class WeatherResponse(
     val location: WeatherLocationResponse,
-    val current: WeatherCurrentResponse
+    val current: WeatherCurrentResponse,
 )
 
 data class WeatherLocationResponse(
@@ -15,7 +15,7 @@ data class WeatherCurrentResponse(
     val wind_kph: Number,
     val pressure_mb : Number,
     val humidity: Int,
-
+    val code: Int
 )
 
 data class WeatherConditionResponse(
