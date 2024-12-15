@@ -18,11 +18,11 @@ fun WeatherResponse.toUiDataModel(): WeatherUiDataModel {
     return WeatherUiDataModel(
         condition = this.current.condition.text,
         conditionIconResId = this.current.condition.code.getConditionImage(),
-        airPressure = this.current.pressure_mb.toDouble(),
-        windSpeed = this.current.wind_kph.toDouble(),
+        airPressure = this.current.pressureMb.toDouble(),
+        windSpeed = this.current.windKph.toDouble(),
         localTime = this.location.localtime.takeLast(5),
-        humidity = this.current.humidity.toInt(),
-        temperature = this.current.temp_c.toDouble()
+        humidity = this.current.humidity,
+        temperature = this.current.temperature.toDouble()
     )
 }
 

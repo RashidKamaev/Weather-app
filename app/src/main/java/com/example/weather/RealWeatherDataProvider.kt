@@ -4,8 +4,8 @@ import android.util.Log
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class RealWeatherDataProvider() : WeatherDataProvider {
-    var weatherApi: WeatherApi
+class RealWeatherDataProvider : WeatherDataProvider {
+    private var weatherApi: WeatherApi
 
     init {
         val retrofit =
@@ -21,10 +21,10 @@ class RealWeatherDataProvider() : WeatherDataProvider {
         Log.d("Data", "WeatherApp: $data ")
         return WeatherData(
             data.location.localtime,
-            data.current.wind_kph,
-            data.current.pressure_mb,
+            data.current.windKph,
+            data.current.pressureMb,
             data.current.humidity,
-            data.current.temp_c.toDouble(),
+            data.current.temperature.toDouble(),
             data.current.code
             )
     }
