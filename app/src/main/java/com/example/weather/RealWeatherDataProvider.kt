@@ -1,27 +1,39 @@
 package com.example.weather
 
-import android.util.Log
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import kotlin.math.roundToInt
 
 class RealWeatherDataProvider : WeatherDataProvider {
-    override suspend fun getData(
-        city : String
-    ): WeatherData {
-        val retrofit =
-            Retrofit.Builder()
-                .baseUrl("http://api.weatherapi.com/v1/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-        val weatherApi = retrofit.create(WeatherApi::class.java)
+
+    private val weatherApi: WeatherApi = Retrofit.Builder()
+        .baseUrl("https://api.weatherapi.com/v1/")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+        .create(WeatherApi::class.java)
+
+    override suspend fun getData(city: String): WeatherData {
         val data = weatherApi.getWeatherData(city = city)
-        Log.d("Data", "WeatherApp: $data ")
+
+        val windSpeedMs = data.current.wind_kph.toDouble() / 3.6
+        val pressureMmHg = data.current.pressure_mb.toDouble() * 0.750061683
+
         return WeatherData(
-            data.location.localtime,
-            data.current.wind_kph,
-            data.current.pressure_mb,
-            data.current.humidity,
-            data.current.temp_c
+            localTime = data.location.localtime
+                .substringAfter(" ")
+                .take(5),
+
+            windSpeed = (windSpeedMs * 10).roundToInt() / 10.0,
+
+            airPressure = pressureMmHg.roundToInt(),
+
+            humidity = data.current.humidity,
+
+            temperature = data.current.temp_c.toDouble(),
+
+            conditionText = data.current.condition.text,
+
+            conditionCode = data.current.condition.code
         )
     }
 }

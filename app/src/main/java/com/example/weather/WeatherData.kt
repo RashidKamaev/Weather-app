@@ -1,9 +1,11 @@
 package com.example.weather
 
 data class WeatherData(
-    val localTime : String,
-    val windSpeed : Number,
-    val airPressure : Number,
-    val humidity : Int,
-    var temperature : Number,
+    val localTime: String,
+    val windSpeed: Double,
+    val airPressure: Int,
+    val humidity: Int,
+    val temperature: Double,
+    val conditionText: String,
+    val conditionCode: Int
 )

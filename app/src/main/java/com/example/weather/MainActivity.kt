@@ -3,20 +3,17 @@
 package com.example.weather
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,8 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -39,43 +34,58 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weather.ui.theme.WeatherTheme
-import kotlinx.coroutines.runBlocking
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-
-@Composable
-fun WeatherApp(){
-    LaunchedEffect(Unit) {
-        val provider: WeatherDataProvider = RealWeatherDataProvider()
-        val data: WeatherData = provider.getData(city = CityBuiltIn.getLondon())
-    }
-}
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import kotlin.math.roundToInt
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState : Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             WeatherTheme {
-                val weatherData: WeatherData
-                runBlocking {
-                    val weatherProvider : WeatherDataProvider =RealWeatherDataProvider()
-                    weatherData = weatherProvider.getData(city = CityBuiltIn.getLondon())
-                }
-                MainScreen(weatherData)
-                WeatherApp()
+                MainScreen()
             }
         }
     }
 }
 
 @Composable
-fun MainScreen(data : WeatherData) {
+fun MainScreen() {
     val selectedItem = remember {
         mutableStateOf(CityBuiltIn.getDefaultCity())
     }
+
+    val weatherData = remember {
+        mutableStateOf<WeatherData?>(null)
+    }
+
+    val errorMessage = remember {
+        mutableStateOf<String?>(null)
+    }
+
+    val weatherProvider = remember {
+        RealWeatherDataProvider()
+    }
+
+    LaunchedEffect(selectedItem.value) {
+        errorMessage.value = null
+
+        try {
+            weatherData.value = weatherProvider.getData(
+                city = selectedItem.value
+            )
+        } catch (e: Exception) {
+            errorMessage.value = "Не удалось загрузить погоду"
+        }
+    }
+
     Column(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -83,10 +93,34 @@ fun MainScreen(data : WeatherData) {
             modifier = Modifier.fillMaxWidth(),
             selectedItem = selectedItem.value,
             items = CityBuiltIn.getCities(),
-            onSelect = { selectedItem.value = it }
+            onSelect = { city ->
+                selectedItem.value = city
+            }
         )
-        Temperature(data.temperature)
-        WeatherDetails(data)
+
+        when {
+            weatherData.value != null -> {
+                Temperature(
+                    weather = weatherData.value!!
+                )
+            }
+
+            errorMessage.value != null -> {
+                Text(
+                    text = errorMessage.value!!
+                )
+            }
+
+            else -> {
+                Text(
+                    text = "Загрузка..."
+                )
+            }
+        }
+
+        weatherData.value?.let { weather ->
+            WeatherDetails(weather)
+        }
     }
 }
 
@@ -184,36 +218,69 @@ fun WeatherDetails(
 
 @Composable
 fun Temperature(
-    temperature : Number
+    weather: WeatherData
 ) {
+    val weatherIcon = getWeatherIcon(
+        conditionCode = weather.conditionCode,
+        windSpeed = weather.windSpeed
+    )
+    val temperature = weather.temperature.roundToInt()
     Box(
         modifier = Modifier
-            .height(320.dp)
-            .width(172.dp)
+            .size(200.dp)
+            .clip(CircleShape)
+            .background(Color(0xB29BB7F2)),
+        contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
+                .padding(
+                horizontal = 12.dp,
+                vertical = 18.dp
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Image(
-                imageVector = ImageVector.vectorResource(id = R.drawable.partly_cloudy_day),
-                contentDescription = null,
-                modifier = Modifier
+                painter = painterResource(id = weatherIcon),
+                contentDescription = weather.conditionText,
+                modifier = Modifier.size(78.dp)
             )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
             Text(
-                text = "Облачно",
-                fontSize = 30.sp,
+                text = weather.conditionText,
+                textAlign = TextAlign.Center,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
-                fontFamily = FontFamily(listOf(Font(R.font.montserrat_semibold))),
-                color = Color.Black,
+                modifier = Modifier.fillMaxWidth(),
+                fontFamily = FontFamily(
+                    listOf(
+                        Font(R.font.montserrat_semibold)
+                    )
+                ),
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis,
+                color = Color.White
             )
+
+            Spacer(modifier = Modifier.height(2.dp))
+
             Text(
-                text = "$temperature°",
-                fontSize = 70.sp,
+                text = "${if (temperature > 0) "+" else ""}$temperature°",
+                fontSize = 48.sp,
                 fontWeight = FontWeight.Medium,
-                fontFamily = FontFamily(listOf(Font(R.font.montserrat_medium))),
-                color = Color.Black,
+                fontFamily = FontFamily(
+                    listOf(
+                        Font(R.font.montserrat_medium)
+                    )
+                ),
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                maxLines = 1
             )
         }
     }
@@ -273,22 +340,22 @@ fun ShowBlock(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun WeatherDetailsPreview() {
-    WeatherTheme {
-
-        val weatherData = WeatherData(
-            localTime = "09:11",
-            windSpeed = 24.5,
-            airPressure = 35,
-            humidity = 354,
-            temperature = 36
-        )
-
-        WeatherDetails(weatherData)
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun WeatherDetailsPreview() {
+//    WeatherTheme {
+//
+//        val weatherData = WeatherData(
+//            localTime = "09:11",
+//            windSpeed = 24.5,
+//            airPressure = 35,
+//            humidity = 354,
+//            temperature = 36
+//        )
+//
+//        WeatherDetails(weatherData)
+//    }
+//}
 
 
 

@@ -18,5 +18,6 @@ data class WeatherCurrentResponse(
 )
 
 data class WeatherConditionResponse(
-    val text: String
+    val text: String,
+    val code: Int
 )

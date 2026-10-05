@@ -8,6 +8,7 @@ interface WeatherApi {
     suspend fun getWeatherData(
         @Query("key") key: String = "6c2318ffbcf44376b1e85601240811",
         @Query("q") city: String,
-        @Query("aqi") aqi: String = "no"
+        @Query("aqi") aqi: String = "no",
+        @Query("lang") lang: String = "ru"
     ): WeatherResponse
 }
